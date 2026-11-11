@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Distributed Deadlock Detection System</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<aside class="sidebar">
+  <div class="brand">🔐 DeadlockWatch</div>
+  <nav>
+    <a href="#dashboard">📊 Dashboard</a>
+    <a href="#graph">🕸️ Visualization</a>
+    <a href="#controls">🎛️ Control Panel</a>
+    <a href="#tables">📋 Tables</a>
+  </nav>
+  <div class="side-foot">Wait-For Graph<br>Cycle Detection</div>
+</aside>
+
+<main>
+  <header>
+    <h1>Distributed Deadlock Detection System</h1>
+    <span id="statusPill" class="pill blue">Not checked</span>
+  </header>
+
+  <section id="dashboard" class="cards">
+    <div class="card stat"><div class="icon">🖥️</div><div><h3 id="cNodes">0</h3><p>Nodes</p></div></div>
+    <div class="card stat"><div class="icon">⚙️</div><div><h3 id="cProcs">0</h3><p>Processes</p></div></div>
+    <div class="card stat"><div class="icon">📦</div><div><h3 id="cRes">0</h3><p>Resources</p></div></div>
+    <div class="card stat"><div class="icon">⏳</div><div><h3 id="cWait">0</h3><p>Waiting</p></div></div>
+    <div class="card stat"><div class="icon">🛡️</div><div><h3 id="cStatus">—</h3><p>Status</p></div></div>
+  </section>
+
+  <section id="graph" class="card">
+    <div class="bar">
+      <h2>Visualization</h2>
+      <div class="btns">
+        <button class="tab active" id="tabSystem" onclick="setView('system')">System View</button>
+        <button class="tab" id="tabWfg" onclick="setView('wfg')">Wait-For Graph</button>
+        <button class="primary" onclick="detect()">▶ Run Detection</button>
+      </div>
+    </div>
+    <div id="graphBox"></div>
+    <div class="legend">
+      <span><i style="background:#22c55e"></i>Running / Allocated</span>
+      <span><i style="background:#f59e0b"></i>Waiting</span>
+      <span><i style="background:#ef4444"></i>Deadlock cycle</span>
+      <span><i style="background:#38bdf8"></i>Resource</span>
+      <span>Arrows crossing node boxes = cross-node communication</span>
+    </div>
+    <div id="result" class="result"></div>
+  </section>
+
+  <section id="controls" class="card">
+    <h2>Control Panel</h2>
+    <div class="grid">
+      <div class="box"><b>1. Add Node</b>
+        <button onclick="act('/api/node')">➕ Add Node</button></div>
+      <div class="box"><b>2. Add Process</b>
+        <select id="pNode"></select>
+        <button onclick="act('/api/process',{node:val('pNode')})">➕ Add Process</button></div>
+      <div class="box"><b>3. Add Resource</b>
+        <select id="rNode"></select>
+        <button onclick="act('/api/resource',{node:val('rNode')})">➕ Add Resource</button></div>
+      <div class="box"><b>4. Allocate Resource</b>
+        <select id="aRes"></select>
+        <select id="aProc"></select>
+        <button onclick="act('/api/allocate',{resource:val('aRes'),process:val('aProc')})">✔ Allocate</button></div>
+      <div class="box"><b>5. Process Waits For Resource</b>
+        <select id="wProc"></select>
+        <select id="wRes"></select>
+        <button onclick="act('/api/wait',{process:val('wProc'),resource:val('wRes')})">⏳ Wait</button></div>
+      <div class="box"><b>Demo Scenarios</b>
+        <button class="danger" onclick="act('/api/scenario/deadlock')">🔴 Deadlock Scenario</button>
+        <button class="good" onclick="act('/api/scenario/safe')">🟢 Safe Scenario</button>
+        <button class="ghost" onclick="act('/api/reset')">♻ Reset</button></div>
+    </div>
+  </section>
+
+  <section id="tables" class="two">
+    <div class="card"><h2>Processes</h2>
+      <div class="scroll"><table>
+        <thead><tr><th>Process</th><th>Node</th><th>Holds</th><th>Waits For</th><th>Status</th></tr></thead>
+        <tbody id="procBody"></tbody></table></div></div>
+    <div class="card"><h2>Resources</h2>
+      <div class="scroll"><table>
+        <thead><tr><th>Resource</th><th>Node</th><th>Held By</th></tr></thead>
+        <tbody id="resBody"></tbody></table></div></div>
+  </section>
+</main>
+
+<div id="toast" class="toast"></div>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
